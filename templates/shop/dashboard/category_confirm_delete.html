@@ -1,0 +1,22 @@
+<!-- templates/shop/dashboard/category_confirm_delete.html -->
+{% extends "shop/dashboard/base_dashboard.html" %}
+
+{% block title %}Delete Category{% endblock %}
+
+{% block dashboard_content %}
+    <div class="card">
+        <div class="card-header">
+            <h3>Delete Category</h3>
+        </div>
+        <div class="card-body">
+            <p>Are you sure you want to delete the category "{{ category.name }}"?</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'shop:dashboard_categories' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

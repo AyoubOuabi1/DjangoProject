@@ -1,0 +1,87 @@
+<!-- templates/shop/checkout.html -->
+{% extends "base.html" %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+    <h2>Checkout</h2>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Delivery Information</h4>
+                </div>
+                <div class="card-body">
+                    <p>This is a demo checkout. No actual payment will be processed.</p>
+                    <form method="post" action="{% url 'shop:checkout' %}">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="full_name">Full Name*</label>
+        <input type="text" name="full_name" id="full_name" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email*</label>
+        <input type="email" name="email" id="email" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="address">Address*</label>
+        <input type="text" name="address" id="address" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="postal_code">Postal Code*</label>
+        <input type="text" name="postal_code" id="postal_code" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="city">City*</label>
+        <input type="text" name="city" id="city" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="country">Country*</label>
+        <input type="text" name="country" id="country" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Phone</label>
+        <input type="text" name="phone" id="phone" class="form-control">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Place Order</button>
+</form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Order Summary</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group mb-3">
+                        {% for item in cart.items.all %}
+                            <li class="list-group-item d-flex justify-content-between lh-sm">
+                                <div>
+                                    <h6 class="my-0">{{ item.product.name }}</h6>
+                                    <small class="text-muted">Quantity: {{ item.quantity }}</small>
+                                </div>
+                                <span class="text-muted">{{ item.get_cost }} €</span>
+                            </li>
+                        {% endfor %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Total</span>
+                            <strong>{{ cart.get_total_cost }} €</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

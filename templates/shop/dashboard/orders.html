@@ -1,0 +1,164 @@
+<!-- templates/shop/dashboard/orders.html -->
+{% extends "shop/dashboard/base_dashboard.html" %}
+
+{% block title %}Orders Dashboard{% endblock %}
+
+{% block dashboard_content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>All Orders</h2>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Customer Orders</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ordersTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Email</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr class="order-row {% if order.paid %}paid-order{% else %}pending-order{% endif %}">
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.full_name }}</td>
+                            <td>{{ order.email }}</td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                {% if order.paid %}
+                                <span class="badge bg-success">Paid</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>${{ order.get_total_cost }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                        data-bs-target="#orderModal{{ order.id }}">
+                                    <i class="bi bi-eye"></i> Details
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No orders found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modals -->
+    {% for order in orders %}
+    <div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1" aria-labelledby="orderModalLabel{{ order.id }}"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderModalLabel{{ order.id }}">
+                        Order #{{ order.id }} Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Customer Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-1"><strong>Name:</strong> {{ order.full_name }}</p>
+                                    <p class="mb-1"><strong>Email:</strong> {{ order.email }}</p>
+                                    <p class="mb-1"><strong>Phone:</strong> {{ order.phone|default:"Not provided" }}</p>
+                                    <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong>
+                                        {% if order.paid %}
+                                        <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Shipping Address</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-1">{{ order.full_name }}</p>
+                                    <p class="mb-1">{{ order.address }}</p>
+                                    <p class="mb-1">{{ order.city }}, {{ order.postal_code }}</p>
+                                    <p class="mb-0">{{ order.country }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Order Items</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Price</th>
+                                            <th>Quantity</th>
+                                            <th class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in order.items.all %}
+                                        <tr>
+                                            <td>{{ item.product.name }}</td>
+                                            <td>${{ item.price }}</td>
+                                            <td>{{ item.quantity }}</td>
+                                            <td class="text-end">${{ item.get_cost }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                            <td class="text-end"><strong>${{ order.get_total_cost }}</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    {% if not order.paid %}
+                    <form action="{% url 'shop:update_order_status' order.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Mark as Paid
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endblock %}

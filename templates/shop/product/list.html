@@ -1,0 +1,157 @@
+<!-- templates/shop/product/list.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if category %}{{ category.name }}{% else %}Products{% endif %}
+{% endblock %}
+
+{% block content %}
+    <!-- Hero Section with Search -->
+    <section class="bg-light py-5 mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="display-4 fw-bold">Find Your Perfect Product</h1>
+                    <p class="lead text-muted">Browse our collection of quality products.</p>
+
+                    <!-- Search Bar -->
+                    <form action="{% url 'shop:product_list' %}" method="get" class="mt-4">
+                        <div class="input-group input-group-lg">
+                            <input type="text" name="q" class="form-control" placeholder="Search products..."
+                                   value="{{ query|default:'' }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <img src="{% static 'img/hero_image.png' %}" alt="Shop Hero" class="img-fluid rounded shadow">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Categories -->
+            <div class="col-md-3">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Categories</h4>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'shop:product_list' %}" class="list-group-item list-group-item-action
+                        {% if not category %}active{% endif %}">
+                            All Products
+                        </a>
+                        {% for c in categories %}
+                            <a href="{{ c.get_absolute_url }}" class="list-group-item list-group-item-action
+                            {% if category.slug == c.slug %}active{% endif %}">
+                                {{ c.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">
+                        {% if category %}
+                            {{ category.name }}
+                        {% elif query %}
+                            Search Results for "{{ query }}"
+                        {% else %}
+                            All Products
+                        {% endif %}
+                    </h2>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            Sort By
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                            <li><a class="dropdown-item" href="#">Newest</a></li>
+                            <li><a class="dropdown-item" href="#">Price: Low to High</a></li>
+                            <li><a class="dropdown-item" href="#">Price: High to Low</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                {% if query and not products %}
+                    <div class="alert alert-info">No products found matching "{{ query }}"</div>
+                {% endif %}
+
+                <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+                    {% for product in products %}
+                        <div class="col">
+                            <div class="card h-100 product-card">
+                                <div class="position-relative">
+                                    <a href="{{ product.get_absolute_url }}">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                        {% else %}
+                                            <img src="{% static 'img/no_image.png' %}" class="card-img-top" alt="No image">
+                                        {% endif %}
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark">
+                                            {{ product.name|truncatechars:50 }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text text-muted small">{{ product.description|truncatechars:80 }}</p>
+                                </div>
+                                <div class="card-footer d-flex justify-content-between align-items-center bg-white">
+                                    <span class="fw-bold text-primary">${{ product.price }}</span>
+                                    <a href="{{ product.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <div class="alert alert-info">No products available</div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if products.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if products.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category.slug }}{% endif %}">Previous</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Previous</span>
+                                </li>
+                            {% endif %}
+
+                            {% for i in products.paginator.page_range %}
+                                <li class="page-item {% if products.number == i %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category.slug }}{% endif %}">{{ i }}</a>
+                                </li>
+                            {% endfor %}
+
+                            {% if products.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if category %}&category={{ category.slug }}{% endif %}">Next</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

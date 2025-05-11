@@ -1,0 +1,158 @@
+<!-- templates/shop/product/detail.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ product.name|truncatechars:30 }}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <!-- Product Image Section -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded" id="mainProductImage">
+                    {% else %}
+                        <img src="{% static 'img/no_image.png' %}" alt="No image" class="img-fluid rounded" id="mainProductImage">
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Product Details Section -->
+            <div class="col-md-6">
+                <h1 class="display-5 fw-bold mb-3">{{ product.name }}</h1>
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-primary me-2">{{ product.category.name }}</span>
+                    <small class="text-muted">ID: {{ product.id }}</small>
+                </div>
+
+                <div class="mb-4">
+                    <h2 class="text-primary display-6">${{ product.price }}</h2>
+                    {% if product.available %}
+                        <span class="badge bg-success">In Stock</span>
+                    {% else %}
+                        <span class="badge bg-danger">Out of Stock</span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="mb-3">Product Description</h4>
+                    <div class="card">
+                        <div class="card-body bg-light">
+                            {{ product.description|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+
+                <form action="{% url 'shop:cart_add' product.id %}" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-center mb-3">
+                        <div class="col-auto">
+                            <label for="quantity" class="col-form-label">Quantity:</label>
+                        </div>
+                        <div class="col-auto">
+                            <select name="quantity" id="quantity" class="form-select">
+                                {% for i in "12345"|make_list %}
+                                    <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-cart-plus me-2"></i> Add to Cart
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary">
+                            <i class="bi bi-heart me-2"></i> Add to Wishlist
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Product Metadata -->
+                <div class="card border-light mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Added on:</small>
+                                <span>{{ product.created_at|date:"F d, Y" }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Last updated:</small>
+                                <span>{{ product.updated_at|date:"F d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products Section -->
+        <div class="mt-5">
+            <h3 class="mb-4">Recommended Products</h3>
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+                {% for related_product in related_products %}
+                    <div class="col">
+                        <div class="card h-100 product-card">
+                            <a href="{{ related_product.get_absolute_url }}">
+                                {% if related_product.image %}
+                                    <img src="{{ related_product.image.url }}" class="card-img-top" alt="{{ related_product.name }}">
+                                {% else %}
+                                    <img src="{% static 'img/no_image.png' %}" class="card-img-top" alt="No image">
+                                {% endif %}
+                            </a>
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{{ related_product.get_absolute_url }}" class="text-decoration-none text-dark">
+                                        {{ related_product.name|truncatechars:50 }}
+                                    </a>
+                                </h5>
+                                <p class="fw-bold text-primary">${{ related_product.price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <p class="text-muted">No recommended products found</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extracss %}
+    <style>
+        #mainProductImage {
+            transition: transform 0.3s ease;
+            max-height: 500px;
+            object-fit: contain;
+        }
+
+        #mainProductImage:hover {
+            transform: scale(1.03);
+        }
+
+        .product-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .product-card .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
+{% endblock %}
